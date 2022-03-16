@@ -14,6 +14,7 @@ public class Node : MonoBehaviour
     public GameObject westLine;
     public int positionX;
     public int positionY;
+    public int availableNodes = 4;
     public Dictionary<Node, int> nodeLinks = new Dictionary<Node, int>();
 
     public void SetNodeLinks()
@@ -39,5 +40,6 @@ public class Node : MonoBehaviour
     public void LockNode(Node nodeToLock)
     {
         nodeLinks[nodeToLock] = 1;
+        availableNodes--;
     }
 }
