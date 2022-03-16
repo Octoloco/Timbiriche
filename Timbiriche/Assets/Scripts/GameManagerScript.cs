@@ -24,12 +24,16 @@ public class GameManagerScript : MonoBehaviour
     private Gradient AIColor;
     [SerializeField]
     private GameObject nodePrefab;
+    [SerializeField]
+    private Sprite squareSprite;
 
     private Node[,] grid;
+    [SerializeField]
+    private List<Node> squareAnchors = new List<Node>();
 
     private void Awake()
     {
-        if(instance == null)
+        if (instance == null)
         {
             instance = this;
         }
@@ -106,10 +110,10 @@ public class GameManagerScript : MonoBehaviour
         {
             for (int j = 1; j < gridSizeX - 1; j++)
             {
-                grid[j, i].GetComponent<Node>().NorthNode = grid[j, i - 1]; 
-                grid[j, i].GetComponent<Node>().SouthNode = grid[j, i + 1]; 
-                grid[j, i].GetComponent<Node>().EastNode = grid[j + 1, i]; 
-                grid[j, i].GetComponent<Node>().WestNode = grid[j - 1, i]; 
+                grid[j, i].GetComponent<Node>().NorthNode = grid[j, i - 1];
+                grid[j, i].GetComponent<Node>().SouthNode = grid[j, i + 1];
+                grid[j, i].GetComponent<Node>().EastNode = grid[j + 1, i];
+                grid[j, i].GetComponent<Node>().WestNode = grid[j - 1, i];
             }
         }
 
@@ -124,9 +128,9 @@ public class GameManagerScript : MonoBehaviour
 
     private void LineSetup()
     {
-        for (int i = 0;i < gridSizeX; i++)
+        for (int i = 0; i < gridSizeX; i++)
         {
-            for (var j = 0;j < gridSizeY; j++)
+            for (var j = 0; j < gridSizeY; j++)
             {
                 if (grid[j, i].SouthNode != null)
                 {
@@ -176,42 +180,209 @@ public class GameManagerScript : MonoBehaviour
             {
                 if (firstNode.nodeLinks[secondNode] == 0)
                 {
-                    Debug.Log("Link");
                     firstNode.LockNode(secondNode);
                     secondNode.LockNode(firstNode);
                     firstNode.northLine.GetComponent<LineRenderer>().colorGradient = playerColor;
+                    squareAnchors.Add(firstNode);
+                    squareAnchors.Add(secondNode);
+                    Debug.Log("anchors num: " + squareAnchors.Count);
+                    CheckForSquare(secondNode, firstNode, firstNode, 1);
+                    squareAnchors.Remove(firstNode);
+                    squareAnchors.Remove(secondNode);
                 }
             }
-            else if(firstNode.SouthNode == secondNode)
+            else if (firstNode.SouthNode == secondNode)
             {
                 if (firstNode.nodeLinks[secondNode] == 0)
                 {
-                    Debug.Log("Link");
                     firstNode.LockNode(secondNode);
                     secondNode.LockNode(firstNode);
                     firstNode.southLine.GetComponent<LineRenderer>().colorGradient = playerColor;
+                    squareAnchors.Add(firstNode);
+                    squareAnchors.Add(secondNode);
+                    CheckForSquare(secondNode, firstNode, firstNode, 1);
+                    squareAnchors.Remove(firstNode);
+                    squareAnchors.Remove(secondNode);
                 }
             }
             else if (firstNode.EastNode == secondNode)
             {
                 if (firstNode.nodeLinks[secondNode] == 0)
                 {
-                    Debug.Log("Link");
                     firstNode.LockNode(secondNode);
                     secondNode.LockNode(firstNode);
                     firstNode.eastLine.GetComponent<LineRenderer>().colorGradient = playerColor;
+                    squareAnchors.Add(firstNode);
+                    squareAnchors.Add(secondNode);
+                    CheckForSquare(secondNode, firstNode, firstNode, 1);
+                    squareAnchors.Remove(firstNode);
+                    squareAnchors.Remove(secondNode);
                 }
             }
             else if (firstNode.WestNode == secondNode)
             {
                 if (firstNode.nodeLinks[secondNode] == 0)
                 {
-                    Debug.Log("Link");
                     firstNode.LockNode(secondNode);
                     secondNode.LockNode(firstNode);
                     firstNode.westLine.GetComponent<LineRenderer>().colorGradient = playerColor;
+                    squareAnchors.Add(firstNode);
+                    squareAnchors.Add(secondNode);
+                    CheckForSquare(secondNode, firstNode, firstNode, 1);
+                    squareAnchors.Remove(firstNode);
+                    squareAnchors.Remove(secondNode);
                 }
             }
         }
+    }
+
+    private void CheckForSquare(Node nextNode, Node initialNode, Node previousNode, int steps)
+    {
+        if (steps > 3)
+        {
+            Debug.Log("1", squareAnchors[0]);
+            Debug.Log("2", squareAnchors[1]);
+            Debug.Log("3", squareAnchors[2]);
+            Debug.Log("4", squareAnchors[3]);
+            Debug.Log("5", squareAnchors[4]);
+            int repeatCounter = 0;
+            foreach (Node n in squareAnchors)
+            {
+                if (n == initialNode)
+                {
+                    repeatCounter++;
+                }
+            }
+
+            if (repeatCounter > 1)
+            {
+                DrawSquare();
+
+                Debug.Log("1", squareAnchors[0]);
+                Debug.Log("2", squareAnchors[1]);
+                Debug.Log("3", squareAnchors[2]);
+                Debug.Log("4", squareAnchors[3]);
+                Debug.Log("5", squareAnchors[4]);
+            }
+        }
+        else
+        {
+            if (nextNode.NorthNode != null)
+            {
+                if (nextNode.nodeLinks[nextNode.NorthNode] != 0)
+                {
+                    if (previousNode == null)
+                    {
+                        steps++;
+                        squareAnchors.Add(nextNode.NorthNode);
+                        CheckForSquare(nextNode.NorthNode, initialNode, nextNode, steps);
+                        squareAnchors.Remove(nextNode.NorthNode);
+                        steps--;
+
+                    }
+                    else
+                    {
+                        if (previousNode != nextNode.NorthNode)
+                        {
+                            steps++;
+                            squareAnchors.Add(nextNode.NorthNode);
+                            CheckForSquare(nextNode.NorthNode, initialNode, nextNode, steps);
+                            squareAnchors.Remove(nextNode.NorthNode);
+                            steps--;
+
+                        }
+                    }
+                }
+            }
+
+            if (nextNode.SouthNode != null)
+            {
+                if (nextNode.nodeLinks[nextNode.SouthNode] != 0)
+                {
+                    if (previousNode == null)
+                    {
+                        steps++;
+                        squareAnchors.Add(nextNode.SouthNode);
+                        CheckForSquare(nextNode.SouthNode, initialNode, nextNode, steps);
+                        squareAnchors.Remove(nextNode.SouthNode);
+                        steps--;
+                    }
+                    else
+                    {
+                        if (previousNode != nextNode.SouthNode)
+                        {
+                            steps++;
+                            squareAnchors.Add(nextNode.SouthNode);
+                            CheckForSquare(nextNode.SouthNode, initialNode, nextNode, steps);
+                            squareAnchors.Remove(nextNode.SouthNode);
+                            steps--;
+                        }
+                    }
+                }
+            }
+
+            if (nextNode.EastNode != null)
+            {
+                if (nextNode.nodeLinks[nextNode.EastNode] != 0)
+                {
+                    if (previousNode == null)
+                    {
+                        steps++;
+                        squareAnchors.Add(nextNode.EastNode);
+                        CheckForSquare(nextNode.EastNode, initialNode, nextNode, steps);
+                        squareAnchors.Remove(nextNode.EastNode);
+                        steps--;
+                    }
+                    else
+                    {
+                        if (previousNode != nextNode.EastNode)
+                        {
+                            steps++;
+                            squareAnchors.Add(nextNode.EastNode);
+                            CheckForSquare(nextNode.EastNode, initialNode, nextNode, steps);
+                            squareAnchors.Remove(nextNode.EastNode);
+                            steps--;
+                        }
+                    }
+                }
+            }
+
+            if (nextNode.WestNode != null)
+            {
+                if (nextNode.nodeLinks[nextNode.WestNode] != 0)
+                {
+                    if (previousNode == null)
+                    {
+                        steps++;
+                        squareAnchors.Add(nextNode.WestNode);
+                        CheckForSquare(nextNode.WestNode, initialNode, nextNode, steps);
+                        squareAnchors.Remove(nextNode.WestNode);
+                        steps--;
+                    }
+                    else
+                    {
+                        if (previousNode != nextNode.WestNode)
+                        {
+                            steps++;
+                            squareAnchors.Add(nextNode.WestNode);
+                            CheckForSquare(nextNode.WestNode, initialNode, nextNode, steps);
+                            squareAnchors.Remove(nextNode.WestNode);
+                            steps--;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void DrawSquare()
+    {
+        GameObject newSquare = new GameObject("Square");
+        newSquare.transform.position = (squareAnchors[0].transform.position + squareAnchors[1].transform.position + squareAnchors[2].transform.position + squareAnchors[3].transform.position) / 4;
+        newSquare.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+        newSquare.AddComponent<SpriteRenderer>();
+        newSquare.GetComponent<SpriteRenderer>().sprite = squareSprite;
+        newSquare.GetComponent<SpriteRenderer>().color = playerColor.colorKeys[0].color;
+        newSquare.GetComponent<SpriteRenderer>().sortingOrder = -2;
     }
 }
